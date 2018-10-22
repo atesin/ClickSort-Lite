@@ -1,4 +1,4 @@
 # ClickSortLite
-stripped 1.13 version of https://github.com/NewbieOrange/clicksort
+Minecraft plugin to sort inventories with mouse, inspired in ClickSort by desht, but lighter and with CB 1.13+ support
 
-to fill later... check my other plugins in the meanwhile
+project page = https://github.com/atesin/ClickSortLite
