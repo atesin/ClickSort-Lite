@@ -1,0 +1,13 @@
+
+v2 (current release)
+
+- better documentation througth code comments
+- some performance improvements (break loops timely)
+- added plugin description shown in /help
+- fixed exception with items in 2nd half large chests
+- fixed item loss: pumpkins, phantom membrane, nautilus shell, etc
+
+v1
+
+- initial release
+- craftbukkit 1.13+ support

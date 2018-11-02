@@ -22,6 +22,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class MainPlugin extends JavaPlugin implements Listener
 {
 	
+	// new labels since v2: fixes, enhances, adds
+	
+	
 	@Override
 	public void onEnable()
 	{
@@ -36,8 +39,9 @@ public final class MainPlugin extends JavaPlugin implements Listener
 		if (e.getClick() != ClickType.MIDDLE || e.getSlotType() != SlotType.CONTAINER || !(e.getWhoClicked() instanceof Player) || e.getAction() != InventoryAction.NOTHING)
 			return;
 		
-		// sorry, no creative inventory support because its unreliable ambiguous event behavior
-		// pointless anyway because it means an already full arranged stock inventory by itself
+		// sorry, no creative inventory support because it is client managed and poorly informed
+		// pointless anyway because is already arranged
+		// however you can sort player inventory in creative mode by sorting bottom inventory form chest views
 		
 		// get upper inventory, or lower if player clicked below
 		Inventory chest = e.getInventory();
@@ -56,7 +60,9 @@ public final class MainPlugin extends JavaPlugin implements Listener
 		else if (chest instanceof AbstractHorseInventory)
 		{
 			from = 2;
-			size -= 2;
+			// enhances: v1 some performance improvements (break loops timely)
+			if ((size -= 2) < 1)
+				return;
 		}
 		
 		// get storage contents
@@ -70,16 +76,22 @@ public final class MainPlugin extends JavaPlugin implements Listener
 			@Override
 			public int compare(ItemStack item1, ItemStack item2)
 			{
-				// consider air as the greatest to leave it for the end
-				if (item1 == null || item1.getType() == Material.AIR)
+				// prevent contract violation, read java8 Comparator javadocs
+				// fixes: v1 exception with items in 2nd half large chests
+				if ( item1 == null ? item1 == item2 : item1.equals(item2) )
+					return 0;
+				
+				// consider air as the greatest item, pushing it to the last
+				if ( emptyItem(item1) )
 					return 1;
-				if (item2 == null || item2.getType() == Material.AIR)
+				if ( emptyItem(item2) )
 					return -1;
 				
 				// sort criterias from general to particular
 				
 				//// sort by material numeric id
 				//int diff = item1.getType().getId() - item2.getType().getId();
+				
 				// sort by material name
 				int diff = item1.getType().compareTo(item2.getType());
 				if (diff != 0)
@@ -118,7 +130,8 @@ public final class MainPlugin extends JavaPlugin implements Listener
 		// use own inventory methods to fill item stacks (why reinvent the wheel?)
 		Inventory vaporChest = getServer().createInventory(null, (size += 8) - (size % 9));
 		for (ItemStack item : storage)
-			if (item == null)
+			// enhances: v1 some performance improvements (break loops timely)
+			if ( emptyItem(item) )
 				break;
 			else
 				vaporChest.addItem(item);
@@ -129,6 +142,14 @@ public final class MainPlugin extends JavaPlugin implements Listener
 		
 		// done, send updated inventory views to player
 		((Player) e.getWhoClicked()).updateInventory();
+	}
+	
+	
+	// utility method
+	// fixes: v1 exception with items in 2nd half large chests (by adding legacy air)
+	private boolean emptyItem(ItemStack item)
+	{
+		return item == null || item.getType() == Material.AIR || item.getType() == Material.LEGACY_AIR;
 	}
 	
 }
