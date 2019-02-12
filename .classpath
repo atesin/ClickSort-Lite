@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/ProgramData/lib/craftbukkit-1.13.1.jar" sourcepath="C:/ProgramData/lib/bukkit-1.13.1-R0.1-20180930.020434-83-javadoc.jar">
+	<classpathentry kind="lib" path="C:/Programas/lib/craftbukkit-1.13.2.jar" sourcepath="C:/ProgramData/lib/bukkit-1.13.1-R0.1-20180930.020434-83-javadoc.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/C:/ProgramData/lib/bukkit-1.13.1-R0.1-20180930.020434-83-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:file:/C:/Programas/lib/bukkit-1.13.2-R0.1-20181104.004334-23-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>

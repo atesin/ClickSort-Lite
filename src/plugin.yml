@@ -1,6 +1,6 @@
 name: ClickSortLite
 description: Sort inventories with middle click.
-main: cl.netgamer.clicksortlite.MainPlugin
-# fixes: v1 exception with items in 2nd half large chests (by adding legacy air)
+main: cl.netgamer.clicksortlite.Main
+# api-version fixes v1 exception with items in 2nd half large chests (by adding legacy air)
 api-version: 1.13
-version: 2
+version: 3

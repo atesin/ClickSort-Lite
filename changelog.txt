@@ -1,4 +1,8 @@
 
+v3 (development)
+
+- to do
+
 v2 (current release)
 
 - better documentation througth code comments

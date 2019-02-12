@@ -6,6 +6,7 @@ import java.util.Comparator;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
@@ -19,7 +20,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
-public final class MainPlugin extends JavaPlugin implements Listener
+public final class Main extends JavaPlugin implements Listener
 {
 	
 	// new labels since v2: fixes, enhances, adds
@@ -29,39 +30,53 @@ public final class MainPlugin extends JavaPlugin implements Listener
 	public void onEnable()
 	{
 		getServer().getPluginManager().registerEvents(this, this);
+		getLogger().info("If you want to disable container sorting you have 2 ways:");
+		getLogger().info("- cancel InventoryClickEvent in your plugin");
+		getLogger().info("- set permission 'clicksortlite' to false");
+		getLogger().info("For these to work i had to set InventoryClickEvent priority to highest,");
+		getLogger().info("you should not do the same or results may be unpredictable.");
 	}
 	
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	void onInventoryClick(InventoryClickEvent e)
 	{
+		// if event was cancelled before do nothing, together with event priority highest
+		if ( e.isCancelled() )
+			return;
+		
 		// skip any other event than player's dummy middle click in a container
-		if (e.getClick() != ClickType.MIDDLE || e.getSlotType() != SlotType.CONTAINER || !(e.getWhoClicked() instanceof Player) || e.getAction() != InventoryAction.NOTHING)
+		if ( e.getClick() != ClickType.MIDDLE || e.getSlotType() != SlotType.CONTAINER || !(e.getWhoClicked() instanceof Player) || e.getAction() != InventoryAction.NOTHING )
+			return;
+		
+		// permission added from v3, suggested by SkitAsul@github.com
+		Player player = (Player) e.getWhoClicked();
+		if ( player.isPermissionSet("clicksortlite") && !player.hasPermission("clicksortlite") )
 			return;
 		
 		// sorry, no creative inventory support because it is client managed and poorly informed
 		// pointless anyway because is already arranged
-		// however you can sort player inventory in creative mode by sorting bottom inventory form chest views
+		// however you can sort player inventory in creative mode by sorting bottom inventory from chest views
 		
 		// get upper inventory, or lower if player clicked below
 		Inventory chest = e.getInventory();
-		if (e.getRawSlot() >= chest.getSize())
+		if ( e.getRawSlot() >= chest.getSize() )
 			chest = e.getView().getBottomInventory();
 		
 		// the code below is because Inventory.getStorageContents() don't always works as described
 		
 		// get storage section according inventory type
 		int from = 0, size = chest.getSize();
-		if (chest.getType() == InventoryType.PLAYER)
+		if ( chest.getType() == InventoryType.PLAYER )
 		{
 			from = 9;
 			size = 27;
 		}
-		else if (chest instanceof AbstractHorseInventory)
+		else if ( chest instanceof AbstractHorseInventory )
 		{
 			from = 2;
 			// enhances: v1 some performance improvements (break loops timely)
-			if ((size -= 2) < 1)
+			if ( (size -= 2) < 1 )
 				return;
 		}
 		
@@ -82,9 +97,9 @@ public final class MainPlugin extends JavaPlugin implements Listener
 					return 0;
 				
 				// consider air as the greatest item, pushing it to the last
-				if ( emptyItem(item1) )
+				if ( isEmptyItem(item1) )
 					return 1;
-				if ( emptyItem(item2) )
+				if ( isEmptyItem(item2) )
 					return -1;
 				
 				// sort criterias from general to particular
@@ -94,12 +109,12 @@ public final class MainPlugin extends JavaPlugin implements Listener
 				
 				// sort by material name
 				int diff = item1.getType().compareTo(item2.getType());
-				if (diff != 0)
+				if ( diff != 0)
 					return diff;
 				
 				// then sort by material data
 				diff = item1.getData().getData() - item2.getData().getData();
-				if (diff != 0)
+				if ( diff != 0 )
 					return diff;
 				
 				// then sort by item meta display names
@@ -109,7 +124,7 @@ public final class MainPlugin extends JavaPlugin implements Listener
 				String name2 = meta2.hasDisplayName() ? meta2.getDisplayName() : "";
 				
 				diff = name1.compareTo(name2);
-				if (diff != 0)
+				if ( diff != 0 )
 					return diff;
 				
 				// then sort by item meta localized names
@@ -117,7 +132,7 @@ public final class MainPlugin extends JavaPlugin implements Listener
 				name2 = meta2.hasLocalizedName() ? meta2.getLocalizedName() : "";
 				
 				diff = name1.compareTo(name2);
-				if (diff != 0)
+				if ( diff != 0 )
 					return diff;
 				
 				// then sort by durability
@@ -131,7 +146,7 @@ public final class MainPlugin extends JavaPlugin implements Listener
 		Inventory vaporChest = getServer().createInventory(null, (size += 8) - (size % 9));
 		for (ItemStack item : storage)
 			// enhances: v1 some performance improvements (break loops timely)
-			if ( emptyItem(item) )
+			if ( isEmptyItem(item) )
 				break;
 			else
 				vaporChest.addItem(item);
@@ -141,13 +156,14 @@ public final class MainPlugin extends JavaPlugin implements Listener
 		chest.setContents(contents);
 		
 		// done, send updated inventory views to player
-		((Player) e.getWhoClicked()).updateInventory();
+		e.setCancelled(true);
+		player.updateInventory();
 	}
 	
 	
 	// utility method
 	// fixes: v1 exception with items in 2nd half large chests (by adding legacy air)
-	private boolean emptyItem(ItemStack item)
+	private boolean isEmptyItem(ItemStack item)
 	{
 		return item == null || item.getType() == Material.AIR || item.getType() == Material.LEGACY_AIR;
 	}
