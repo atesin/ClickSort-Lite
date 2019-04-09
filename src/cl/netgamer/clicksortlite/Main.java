@@ -30,18 +30,12 @@ public final class Main extends JavaPlugin implements Listener
 	public void onEnable()
 	{
 		getServer().getPluginManager().registerEvents(this, this);
-		getLogger().info("If you want to disable container sorting you have 2 ways:");
-		getLogger().info("- cancel InventoryClickEvent in your plugin");
-		getLogger().info("- set permission 'clicksortlite' to false");
-		getLogger().info("For these to work i had to set InventoryClickEvent priority to highest,");
-		getLogger().info("you should not do the same or results may be unpredictable.");
 	}
 	
 	
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.MONITOR)
 	void onInventoryClick(InventoryClickEvent e)
 	{
-		// if event was cancelled before do nothing, together with event priority highest
 		if ( e.isCancelled() )
 			return;
 		
